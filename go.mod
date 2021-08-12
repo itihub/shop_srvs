@@ -1,4 +1,4 @@
-module go_micro
+module shop_srvs
 
 go 1.16
 
