@@ -19,7 +19,7 @@ import (
 )
 
 // 用于生成结构
-func main()  {
+func main() {
 	// 使用gorm连接到数据库
 
 	// 设置全局的的logger, 作用：执行每个sql语句的时候会打印每一行sql
@@ -48,11 +48,22 @@ func main()  {
 	// 迁移 schema
 	db.AutoMigrate(&model.User{})
 
+	// 批量创建测试数据
+	//options := &password.Options{16, 100, 32, sha512.New}
+	//salt, encodedPwd := password.Encode("admin123", options)
+	//newPassword := fmt.Sprintf("$pbkdf2-sha512$%s$%s", salt, encodedPwd)
+	//for i := 0; i < 10; i++ {
+	//	user := model.User{
+	//		NickName: fmt.Sprintf("jimmy%d", i),
+	//		Mobile: fmt.Sprintf("1560000000%d", i),
+	//		Password: newPassword,
+	//	}
+	//	db.Save(&user)
+	//}
 
 	//fmt.Println(genMd5("123456"))
 	//encodeTest()
 }
-
 
 // 生成MD5 避免彩虹表爆破采用加盐值来提高安全性
 func genMd5(code string) string {
@@ -66,7 +77,7 @@ func genMd5(code string) string {
 }
 
 // 加盐MD5测试 使用的是第三方的github.com/anaskhan96/go-password-encoder
-func encodeTest()  {
+func encodeTest() {
 	// Using the default options
 	salt, encodedPwd := password.Encode("generic password", nil)
 	check := password.Verify("generic password", salt, encodedPwd, nil)
@@ -90,6 +101,6 @@ func encodeTest()  {
 	// 校验用户密码
 	passwordInfo := strings.Split(newPassword, "$") // 解析密码信息
 	fmt.Println(passwordInfo)
-	check = password.Verify("generic password", passwordInfo[2], passwordInfo[3], options)	// 校验
+	check = password.Verify("generic password", passwordInfo[2], passwordInfo[3], options) // 校验
 	fmt.Println(check)
 }
