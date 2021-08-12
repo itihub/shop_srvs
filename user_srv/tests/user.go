@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"go_micro/user_srv/proto"
 	"google.golang.org/grpc"
+	"shop_srvs/user_srv/proto"
 )
 
 var (

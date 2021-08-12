@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go_micro/user_srv/handler"
-	"go_micro/user_srv/proto"
 	"google.golang.org/grpc"
 	"net"
+	"shop_srvs/user_srv/handler"
+	"shop_srvs/user_srv/proto"
 )
 
 func main() {

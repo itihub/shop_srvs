@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/anaskhan96/go-password-encoder"
-	"go_micro/user_srv/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -14,6 +13,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"shop_srvs/user_srv/model"
 	"strings"
 	"time"
 )
