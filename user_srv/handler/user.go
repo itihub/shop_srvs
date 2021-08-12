@@ -1,4 +1,4 @@
-package handel
+package handler
 
 import (
 	"context"

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go_micro/user_srv/handel"
+	"go_micro/user_srv/handler"
 	"go_micro/user_srv/proto"
 	"google.golang.org/grpc"
 	"net"
@@ -28,7 +28,7 @@ func main() {
 
 	// GRPC 启动
 	server := grpc.NewServer()
-	proto.RegisterUserServer(server, &handel.UserService{})
+	proto.RegisterUserServer(server, &handler.UserService{})
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *IP, *Port))
 	if err != nil {
 		panic("failed to listen:" + err.Error())
