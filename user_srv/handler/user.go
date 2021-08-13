@@ -4,16 +4,17 @@ import (
 	"context"
 	"crypto/sha512"
 	"fmt"
-	"github.com/anaskhan96/go-password-encoder"
-	"github.com/golang/protobuf/ptypes/empty"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"gorm.io/gorm"
 	"shop_srvs/user_srv/global"
 	"shop_srvs/user_srv/model"
 	"shop_srvs/user_srv/proto"
 	"strings"
 	"time"
+
+	"github.com/anaskhan96/go-password-encoder"
+	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -38,6 +39,7 @@ func Model2Response(user model.User) proto.UserInfoResponse {
 	// 在GRPC的message中字段有默认值，不能赋值nil进去容易错误
 	userInfoRsp := proto.UserInfoResponse{
 		Id:       user.ID,
+		Mobile:   user.Mobile,
 		Password: user.Password,
 		NickName: user.NickName,
 		Gender:   user.Gender,
