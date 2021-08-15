@@ -3,10 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"google.golang.org/grpc"
 	"net"
 	"shop_srvs/user_srv/handler"
+	"shop_srvs/user_srv/initialize"
 	"shop_srvs/user_srv/proto"
+
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -21,10 +24,15 @@ func main() {
 	// 通过flag获取参数 (命令行输入参数)
 	IP := flag.String("ip", "0.0.0.0", "IP地址")
 	Port := flag.Int("port", 50051, "端口")
-
 	flag.Parse()
-	fmt.Println("ip: ", *IP)
-	fmt.Println("port: ", *Port)
+
+	// 初始化
+	initialize.InitLogger()
+	initialize.InitConfig()
+	initialize.InitDB()
+
+	zap.S().Info("ip: ", *IP)
+	zap.S().Info("port: ", *Port)
 
 	// GRPC 启动
 	server := grpc.NewServer()

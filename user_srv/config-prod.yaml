@@ -1,0 +1,7 @@
+
+mysql:
+  host: 'local.docker.node1.com'
+  port: 3306
+  db: 'micro_user_srv'
+  user: 'root'
+  password: '123456'

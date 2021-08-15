@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
 	"shop_srvs/user_srv/proto"
+
+	"google.golang.org/grpc"
 )
 
 var (
@@ -25,7 +26,7 @@ func Init() {
 func main() {
 	Init()
 
-	TestCreateUser()
+	//TestCreateUser()
 	TestGetUserList()
 
 	conn.Close() // 关闭连接
