@@ -8,6 +8,7 @@ import (
 	"shop_srvs/user_srv/handler"
 	"shop_srvs/user_srv/initialize"
 	"shop_srvs/user_srv/proto"
+	"shop_srvs/user_srv/utils"
 
 	"github.com/hashicorp/consul/api"
 
@@ -29,13 +30,18 @@ func main() {
 
 	// 通过flag获取参数 (命令行输入参数)
 	IP := flag.String("ip", "0.0.0.0", "IP地址")
-	Port := flag.Int("port", 50051, "端口")
+	Port := flag.Int("port", 0, "端口")
 	flag.Parse()
 
 	// 初始化
 	initialize.InitLogger()
 	initialize.InitConfig()
 	initialize.InitDB()
+
+	// 如果命令行没有传递port使用动态端口号，如果传递则使用命令行传递端口号
+	if *Port == 0 {
+		*Port, _ = utils.GetFreePort()
+	}
 
 	zap.S().Info("ip: ", *IP)
 	zap.S().Info("port: ", *Port)

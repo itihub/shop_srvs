@@ -15,7 +15,7 @@ var (
 
 func Init() {
 	var err error
-	conn, err = grpc.Dial("127.0.0.1:50051", grpc.WithInsecure()) // 拨号 建立连接
+	conn, err = grpc.Dial(fmt.Sprintf("127.0.0.1:%d", 50051), grpc.WithInsecure()) // 拨号 建立连接
 	if err != nil {
 		panic(err)
 	}
