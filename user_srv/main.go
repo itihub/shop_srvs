@@ -4,11 +4,16 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 	"shop_srvs/user_srv/global"
 	"shop_srvs/user_srv/handler"
 	"shop_srvs/user_srv/initialize"
 	"shop_srvs/user_srv/proto"
 	"shop_srvs/user_srv/utils"
+	"syscall"
+
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/hashicorp/consul/api"
 
@@ -78,7 +83,9 @@ func main() {
 	// 创建服务注册对象
 	registration := new(api.AgentServiceRegistration)
 	registration.Name = global.ServiceConfig.Name
-	registration.ID = global.ServiceConfig.Name
+	serviceID := fmt.Sprintf("%s", uuid.NewV4())
+	//registration.ID = fmt.Sprintf("%s:%d", global.ServiceConfig.Name, *Port)
+	registration.ID = serviceID
 	registration.Port = *Port
 	registration.Tags = []string{"shop", "user_srv"}
 	registration.Address = "172.20.10.2"
@@ -89,8 +96,20 @@ func main() {
 		panic(err)
 	}
 
-	err = server.Serve(lis)
-	if err != nil {
-		panic("failed to start grpc:" + err.Error())
+	go func() {
+		err = server.Serve(lis)
+		if err != nil {
+			panic("failed to start grpc:" + err.Error())
+		}
+	}()
+
+	// 接受终止信号 优雅退出
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	if err = client.Agent().ServiceDeregister(serviceID); err != nil {
+		zap.S().Info("注销失败")
 	}
+	zap.S().Info("注销成功")
+
 }
