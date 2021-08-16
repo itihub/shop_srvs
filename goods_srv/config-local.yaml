@@ -1,5 +1,5 @@
 
-name: 'user-srv'
+name: 'goods-srv'
 
 ##########################
 ###     mysql 配置      ###
@@ -7,7 +7,7 @@ name: 'user-srv'
 mysql:
   host: 'local.docker.node1.com'
   port: 3306
-  db: 'micro_user_srv'
+  db: 'micro_goods_srv'
   user: 'root'
   password: '123456'
 

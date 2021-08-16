@@ -1,1 +1,6 @@
 .idea
+
+*.exe
+
+tmp/nacos/log/
+tmp/nacos/cache/
