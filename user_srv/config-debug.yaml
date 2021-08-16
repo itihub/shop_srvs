@@ -1,19 +1,9 @@
 
-name: 'user_srv'
-
-##########################
-###     mysql 配置      ###
-##########################
-mysql:
+nacos:
   host: 'local.docker.node1.com'
-  port: 3306
-  db: 'micro_user_srv'
-  user: 'root'
-  password: '123456'
-
-##########################
-### 注册中心 consul 配置 ###
-##########################
-consul:
-  host: 'local.docker.node1.com'
-  port: 8500
+  port: 8848
+  namespace: 'user'
+  user: 'nacos'
+  password: 'nacos'
+  dataid: 'user-srv.json'
+  group: 'dev'

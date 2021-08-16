@@ -10,4 +10,5 @@ import (
 var (
 	DB            *gorm.DB
 	ServiceConfig config.ServiceConfig
+	NacosConfig   config.NacosConfig
 )

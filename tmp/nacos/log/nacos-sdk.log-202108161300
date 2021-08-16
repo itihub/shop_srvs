@@ -1,0 +1,24 @@
+2021-08-16T13:01:09.950+0800	[31mERROR[0m	api</v1/cs/configs>,method:<GET>, params:<{"dataId":"user-srv.json","group":"prod","tenant":"user"}>, call domain error:<[404] config data not exist
+> , result:<config data not exist
+>
+2021-08-16T13:01:09.959+0800	[31mERROR[0m	api</v1/cs/configs>,method:<GET>, params:<{"dataId":"user-srv.json","group":"prod","tenant":"user"}>, call domain error:<[404] config data not exist
+> , result:<config data not exist
+>
+2021-08-16T13:01:09.964+0800	[31mERROR[0m	api</v1/cs/configs>,method:<GET>, params:<{"dataId":"user-srv.json","group":"prod","tenant":"user"}>, call domain error:<[404] config data not exist
+> , result:<config data not exist
+>
+2021-08-16T13:01:09.964+0800	[34mINFO[0m	get config from server error:[404] config data not exist
+ 
+2021-08-16T13:01:09.965+0800	[33mWARN[0m	[client.GetConfig] config not found, dataId: user-srv.json, group: prod, namespaceId: user.
+2021-08-16T13:01:47.970+0800	[31mERROR[0m	api</v1/cs/configs>,method:<GET>, params:<{"dataId":"user-srv.json","group":"prod","tenant":"user"}>, call domain error:<[404] config data not exist
+> , result:<config data not exist
+>
+2021-08-16T13:01:47.974+0800	[31mERROR[0m	api</v1/cs/configs>,method:<GET>, params:<{"dataId":"user-srv.json","group":"prod","tenant":"user"}>, call domain error:<[404] config data not exist
+> , result:<config data not exist
+>
+2021-08-16T13:01:47.976+0800	[31mERROR[0m	api</v1/cs/configs>,method:<GET>, params:<{"dataId":"user-srv.json","group":"prod","tenant":"user"}>, call domain error:<[404] config data not exist
+> , result:<config data not exist
+>
+2021-08-16T13:01:47.976+0800	[34mINFO[0m	get config from server error:[404] config data not exist
+ 
+2021-08-16T13:01:47.976+0800	[33mWARN[0m	[client.GetConfig] config not found, dataId: user-srv.json, group: prod, namespaceId: user.
