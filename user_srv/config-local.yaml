@@ -17,3 +17,6 @@ mysql:
 consul:
   host: 'local.docker.node1.com'
   port: 8500
+  tags:
+    - 'user-srv'
+    - 'shop'
