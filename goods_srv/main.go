@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"shop_srvs/goods_srv/global"
-	"shop_srvs/goods_srv/handler"
 	"shop_srvs/goods_srv/initialize"
 	"shop_srvs/goods_srv/proto"
 	"shop_srvs/goods_srv/utils"
@@ -45,7 +44,10 @@ func main() {
 
 	// 如果命令行没有传递port使用动态端口号，如果传递则使用命令行传递端口号
 	if *Port == 0 {
-		*Port, _ = utils.GetFreePort()
+		if global.ServiceConfig.Port == 0 {
+			*Port, _ = utils.GetFreePort()
+		}
+		*Port = global.ServiceConfig.Port
 	}
 
 	zap.S().Info("ip: ", *IP)
@@ -53,7 +55,7 @@ func main() {
 
 	// GRPC 启动
 	server := grpc.NewServer()
-	proto.RegisterUserServer(server, &handler.UserService{})
+	proto.RegisterGoodsServer(server, &proto.UnimplementedGoodsServer{})
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *IP, *Port))
 	if err != nil {
 		panic("failed to listen:" + err.Error())
@@ -74,7 +76,7 @@ func main() {
 
 	// 创建服务检查检查对象
 	check := &api.AgentServiceCheck{
-		GRPC:                           fmt.Sprintf("%s:%d", "192.168.0.102", *Port),
+		GRPC:                           fmt.Sprintf("%s:%d", global.ServiceConfig.Host, *Port),
 		Timeout:                        "5s",
 		Interval:                       "5s",
 		DeregisterCriticalServiceAfter: "15s",
@@ -87,8 +89,8 @@ func main() {
 	//registration.ID = fmt.Sprintf("%s:%d", global.ServiceConfig.Name, *Port)
 	registration.ID = serviceID
 	registration.Port = *Port
-	registration.Tags = []string{"shop", "goods_srv"}
-	registration.Address = "192.168.0.102"
+	registration.Tags = global.ServiceConfig.ConsulInfo.Tags
+	registration.Address = global.ServiceConfig.Host
 	registration.Check = check
 
 	err = client.Agent().ServiceRegister(registration)

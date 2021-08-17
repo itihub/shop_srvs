@@ -9,8 +9,9 @@ type MysqlConfig struct {
 }
 
 type ConsulConfig struct {
-	Host string `mapstructure:"host" json:"host"`
-	Port int    `mapstructure:"port" json:"port"`
+	Host string   `mapstructure:"host" json:"host"`
+	Port int      `mapstructure:"port" json:"port"`
+	Tags []string `mapstructure:"tags" json:"tags"`
 }
 
 type ServiceConfig struct {

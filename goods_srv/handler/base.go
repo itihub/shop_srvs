@@ -1,11 +1,6 @@
 package handler
 
-import (
-	"gorm.io/gorm"
-)
-
-type UserService struct {
-}
+import "gorm.io/gorm"
 
 // 分页
 func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {

@@ -3,11 +3,12 @@ package model
 // 商品分类表
 type Category struct {
 	BaseModel
-	Name             string `gorm:"not null;type:varchar(20) comment '名称'"`
-	ParentCategoryID int32
-	ParentCategory   *Category
-	Level            int32 `gorm:"default:1;not null;type:int comment '级别'"`
-	IsTab            bool  `gorm:"not null;default:false;type:bool  comment '是否展示在Tab栏'"`
+	Name             string      `gorm:"not null;type:varchar(20) comment '名称'" json:"name"`
+	ParentCategoryID int32       `json:"parent"`
+	ParentCategory   *Category   `json:"-"` // - 序列化会忽略
+	SubCategory      []*Category `gorm:"foreignKey:ParentCategoryID;references:ID" json:"sub_category"`
+	Level            int32       `gorm:"default:1;not null;type:int comment '级别'" json:"level"`
+	IsTab            bool        `gorm:"not null;default:false;type:bool  comment '是否展示在Tab栏'" json:"is_tab"`
 }
 
 // 品牌表
