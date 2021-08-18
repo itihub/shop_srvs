@@ -108,8 +108,8 @@ func (s *GoodsServer) GoodsList(ctx context.Context, req *proto.GoodsFilterReque
 	return goodsListResponse, nil
 }
 
-//现在用户提交订单有多个商品，你得批量查询商品的信息吧
 func (s *GoodsServer) BatchGetGoods(ctx context.Context, req *proto.BatchGoodsIdInfo) (*proto.GoodsListResponse, error) {
+	// 批量查询商品的信息
 	goodsListResponse := &proto.GoodsListResponse{}
 	var goods []model.Goods
 
@@ -123,6 +123,7 @@ func (s *GoodsServer) BatchGetGoods(ctx context.Context, req *proto.BatchGoodsId
 	return goodsListResponse, nil
 }
 func (s *GoodsServer) GetGoodsDetail(ctx context.Context, req *proto.GoodInfoRequest) (*proto.GoodsInfoResponse, error) {
+	// 获取商品详情
 	var goods model.Goods
 
 	if result := global.DB.Preload("Category").Preload("Brands").First(&goods, req.Id); result.RowsAffected == 0 {
@@ -133,6 +134,7 @@ func (s *GoodsServer) GetGoodsDetail(ctx context.Context, req *proto.GoodInfoReq
 }
 
 func (s *GoodsServer) CreateGoods(ctx context.Context, req *proto.CreateGoodsInfo) (*proto.GoodsInfoResponse, error) {
+	// 创建商品
 	var category model.Category
 	if result := global.DB.First(&category, req.CategoryId); result.RowsAffected == 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "商品分类不存在")
@@ -178,6 +180,7 @@ func (s *GoodsServer) CreateGoods(ctx context.Context, req *proto.CreateGoodsInf
 }
 
 func (s *GoodsServer) DeleteGoods(ctx context.Context, req *proto.DeleteGoodsInfo) (*emptypb.Empty, error) {
+	// 逻辑删除商品
 	if result := global.DB.Delete(&model.Goods{BaseModel: model.BaseModel{ID: req.Id}}, req.Id); result.Error != nil {
 		return nil, status.Errorf(codes.NotFound, "商品不存在")
 	}
@@ -185,6 +188,7 @@ func (s *GoodsServer) DeleteGoods(ctx context.Context, req *proto.DeleteGoodsInf
 }
 
 func (s *GoodsServer) UpdateGoods(ctx context.Context, req *proto.CreateGoodsInfo) (*emptypb.Empty, error) {
+	// 更新商品信息
 	var goods model.Goods
 
 	if result := global.DB.First(&goods, req.Id); result.RowsAffected == 0 {
