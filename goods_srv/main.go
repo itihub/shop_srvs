@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"shop_srvs/goods_srv/global"
+	"shop_srvs/goods_srv/handler"
 	"shop_srvs/goods_srv/initialize"
 	"shop_srvs/goods_srv/proto"
 	"shop_srvs/goods_srv/utils"
@@ -54,7 +55,7 @@ func main() {
 
 	// GRPC 启动
 	server := grpc.NewServer()
-	proto.RegisterGoodsServer(server, &proto.UnimplementedGoodsServer{})
+	proto.RegisterGoodsServer(server, &handler.GoodsServer{})
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *IP, *Port))
 	if err != nil {
 		panic("failed to listen:" + err.Error())
