@@ -42,7 +42,7 @@ func InitConfig() {
 	if err := v.Unmarshal(config); err != nil {
 		panic(err)
 	}
-	zap.S().Infof("配置信息：%v", config)
+	zap.S().Infof("Nacos配置信息：%v", config)
 	global.NacosConfig = config.Nacos
 
 	// 从nacos读取配置信息

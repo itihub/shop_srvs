@@ -11,11 +11,10 @@ import (
 	"shop_srvs/user_srv/initialize"
 	"shop_srvs/user_srv/proto"
 	"shop_srvs/user_srv/utils"
+	"shop_srvs/user_srv/utils/register/consul"
 	"syscall"
 
 	uuid "github.com/satori/go.uuid"
-
-	"github.com/hashicorp/consul/api"
 
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -66,38 +65,13 @@ func main() {
 	grpc_health_v1.RegisterHealthServer(server, health.NewServer())
 
 	// 服务注册
-	cfg := api.DefaultConfig()
-	cfg.Address = fmt.Sprintf("%s:%d", global.ServiceConfig.ConsulInfo.Host,
-		global.ServiceConfig.ConsulInfo.Port)
-
-	client, err := api.NewClient(cfg)
-	if err != nil {
-		panic(err)
-	}
-
-	// 创建服务检查检查对象
-	check := &api.AgentServiceCheck{
-		GRPC:                           fmt.Sprintf("%s:%d", global.ServiceConfig.Host, *Port),
-		Timeout:                        "5s",
-		Interval:                       "5s",
-		DeregisterCriticalServiceAfter: "15s",
-	}
-
-	// 创建服务注册对象
-	registration := new(api.AgentServiceRegistration)
-	registration.Name = global.ServiceConfig.Name
 	serviceID := fmt.Sprintf("%s", uuid.NewV4())
-	//registration.ID = fmt.Sprintf("%s:%d", global.ServiceConfig.Name, *Port)
-	registration.ID = serviceID
-	registration.Port = *Port
-	registration.Tags = global.ServiceConfig.ConsulInfo.Tags
-	registration.Address = global.ServiceConfig.Host
-	registration.Check = check
-
-	err = client.Agent().ServiceRegister(registration)
+	registryClient := consul.NewRegistryClient(global.ServiceConfig.ConsulInfo.Host, global.ServiceConfig.ConsulInfo.Port)
+	err = registryClient.Register(global.ServiceConfig.Host, global.ServiceConfig.Port, global.ServiceConfig.Name, global.ServiceConfig.Tags, serviceID)
 	if err != nil {
-		panic(err)
+		zap.S().Panic("服务注册失败:", err.Error())
 	}
+	zap.S().Debugf("启动服务, 端口:%d", global.ServiceConfig.Port)
 
 	go func() {
 		err = server.Serve(lis)
@@ -110,7 +84,7 @@ func main() {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	if err = client.Agent().ServiceDeregister(serviceID); err != nil {
+	if err = registryClient.DeRegister(serviceID); err != nil {
 		zap.S().Info("注销失败")
 	}
 	zap.S().Info("注销成功")
