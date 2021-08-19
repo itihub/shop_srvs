@@ -1,9 +1,9 @@
 
 host: '172.23.0.200'
-port: 50052
-name: 'goods-srv'
+port: 50053
+name: 'inventory-srv'
 tags:
-  - 'goods-srv'
+  - 'inventory-srv'
   - 'shop'
   - 'dev'
 
@@ -13,7 +13,7 @@ tags:
 mysql:
   host: 'local.docker.node1.com'
   port: 3306
-  db: 'micro_goods_srv'
+  db: 'micro_inventory_srv'
   user: 'root'
   password: '123456'
 
