@@ -7,6 +7,8 @@ import (
 	"shop_srvs/inventory_srv/global"
 	"time"
 
+	goredislib "github.com/go-redis/redis/v8"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v8"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -44,4 +46,11 @@ func InitDB() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func InitRedis() {
+	client := goredislib.NewClient(&goredislib.Options{
+		Addr: fmt.Sprintf("%s:%d", global.ServiceConfig.RedisInfo.Host, global.ServiceConfig.RedisInfo.Port),
+	})
+	global.RedisPool = goredis.NewPool(client) // or, pool := redigo.NewPool(...)
 }
