@@ -7,7 +7,8 @@ require (
 	github.com/go-redis/redis/v8 v8.11.3
 	github.com/go-redsync/redsync/v4 v4.3.0
 	github.com/golang/protobuf v1.5.2
-	github.com/hashicorp/consul/api v1.1.0
+	github.com/hashicorp/consul/api v1.3.0
+	github.com/mbobakov/grpc-consul-resolver v1.4.4
 	github.com/nacos-group/nacos-sdk-go v1.0.8
 	github.com/satori/go.uuid v1.2.0
 	github.com/spf13/viper v1.8.1
