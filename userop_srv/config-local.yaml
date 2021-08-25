@@ -1,0 +1,25 @@
+
+host: '172.23.0.200'
+port: 50055
+name: 'userop-srv'
+tags:
+  - 'userop-srv'
+  - 'shop'
+  - 'dev'
+
+##########################
+###     mysql 配置      ###
+##########################
+mysql:
+  host: 'local.docker.node1.com'
+  port: 3306
+  db: 'micro_userop_srv'
+  user: 'root'
+  password: '123456'
+
+##########################
+### 注册中心 consul 配置 ###
+##########################
+consul:
+  host: 'local.docker.node1.com'
+  port: 8500

@@ -1,0 +1,9 @@
+
+nacos:
+  host: 'local.docker.node1.com'
+  port: 8848
+  namespace: 'userop'
+  user: 'nacos'
+  password: 'nacos'
+  dataid: 'userop-srv.json'
+  group: 'prod'
