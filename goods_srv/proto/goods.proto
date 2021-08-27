@@ -7,6 +7,7 @@ option go_package = "./;proto";
 service Goods{
     //商品接口
     rpc GoodsList(GoodsFilterRequest) returns(GoodsListResponse);
+    rpc GoodsListByDB(GoodsFilterRequest) returns(GoodsListResponse);
     rpc BatchGetGoods(BatchGoodsIdInfo) returns(GoodsListResponse); //批量获取商品信息
     rpc CreateGoods(CreateGoodsInfo) returns (GoodsInfoResponse);
     rpc DeleteGoods(DeleteGoodsInfo) returns (google.protobuf.Empty);

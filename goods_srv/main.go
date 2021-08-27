@@ -41,6 +41,7 @@ func main() {
 	initialize.InitLogger()
 	initialize.InitConfig()
 	initialize.InitDB()
+	initialize.InitElastic()
 
 	// 如果命令行没有传递port使用动态端口号，如果传递则使用命令行传递端口号
 	if *Port == 0 {

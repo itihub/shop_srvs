@@ -3,6 +3,7 @@ package global
 import (
 	"shop_srvs/goods_srv/config"
 
+	"github.com/olivere/elastic/v7"
 	"gorm.io/gorm"
 )
 
@@ -11,4 +12,5 @@ var (
 	DB            *gorm.DB
 	ServiceConfig config.ServiceConfig
 	NacosConfig   config.NacosConfig
+	ElasticClient *elastic.Client
 )

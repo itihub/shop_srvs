@@ -1,6 +1,10 @@
 package handler
 
-import "gorm.io/gorm"
+import (
+	"shop_srvs/goods_srv/proto"
+
+	"gorm.io/gorm"
+)
 
 // 分页
 func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
@@ -15,4 +19,8 @@ func Paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
 		offset := (page - 1) * pageSize
 		return db.Offset(offset).Limit(pageSize)
 	}
+}
+
+type GoodsServer struct {
+	proto.UnimplementedGoodsServer
 }

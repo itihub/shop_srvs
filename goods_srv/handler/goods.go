@@ -2,18 +2,17 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"shop_srvs/goods_srv/global"
 	"shop_srvs/goods_srv/model"
 	"shop_srvs/goods_srv/proto"
 
+	"github.com/olivere/elastic/v7"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
-
-type GoodsServer struct {
-}
 
 func ModelToResponse(goods model.Goods) proto.GoodsInfoResponse {
 	return proto.GoodsInfoResponse{
@@ -47,6 +46,111 @@ func ModelToResponse(goods model.Goods) proto.GoodsInfoResponse {
 }
 
 func (s *GoodsServer) GoodsList(ctx context.Context, req *proto.GoodsFilterRequest) (*proto.GoodsListResponse, error) {
+	//使用es的目的是搜索出商品的id来，通过id拿到具体的字段信息是通过mysql来完成
+	//我们使用es是用来做搜索的， 是否应该将所有的mysql字段全部在es中保存一份
+	//es用来做搜索，这个时候我们一般只把搜索和过滤的字段信息保存到es中
+	//es可以用来当做mysql使用， 但是实际上mysql和es之间是互补的关系， 一般mysql用来做存储使用，es用来做搜索使用
+	//es想要提高性能， 就要将es的内存设置的够大， 1k 2k
+
+	//	搜索条件：关键词搜索、查询新品、查询热门商品、通过价格区间筛选、通过商品分类筛选
+	goodsListResponse := &proto.GoodsListResponse{}
+
+	// bool 复合查询
+	q := elastic.NewBoolQuery()
+
+	if req.KeyWords != "" {
+		q = q.Must(elastic.NewMultiMatchQuery(req.KeyWords, "name", "goods_brief"))
+	}
+	if req.IsHot {
+		q = q.Filter(elastic.NewTermQuery("is_host", true))
+	}
+	if req.IsNew {
+		q = q.Filter(elastic.NewTermQuery("is_new", true))
+	}
+	if req.PriceMin > 0 {
+		q = q.Filter(elastic.NewRangeQuery("shop_price").Gte(req.PriceMin))
+	}
+	if req.PriceMax > 0 {
+		q = q.Filter(elastic.NewRangeQuery("shop_price").Lte(req.PriceMax))
+	}
+	if req.Brand > 0 {
+		q = q.Filter(elastic.NewTermQuery("brand_id", req.Brand))
+	}
+
+	// 通过category类目查询类目下的category_id
+	categoryIds := make([]interface{}, 0)
+	if req.TopCategory > 0 {
+		var category model.Category
+		if result := global.DB.First(&category, req.TopCategory); result.RowsAffected == 0 {
+			return nil, status.Errorf(codes.NotFound, "商品分类不存在")
+		}
+
+		var subQuery string
+		if category.Level == 1 {
+			subQuery = fmt.Sprintf("SELECT id from category WHERE parent_category_id IN (SELECT id form category WHERE parent_category_id = %d)", req.TopCategory)
+		} else if category.Level == 2 {
+			subQuery = fmt.Sprintf("SELECT id form category WHERE parent_category_id = %d", req.TopCategory)
+		} else if category.Level == 3 {
+			subQuery = fmt.Sprintf("SELECT id form category WHERE id = %d", req.TopCategory)
+		}
+
+		type Result struct {
+			ID int32
+		}
+		var results []Result
+		global.DB.Raw(subQuery).Scan(&results)
+		for _, re := range results {
+			categoryIds = append(categoryIds, re.ID)
+		}
+	}
+
+	// 生成terms查询
+	q = q.Filter(elastic.NewTermsQuery("category_id", categoryIds...))
+
+	if req.Pages == 0 {
+		req.Pages = 1
+	}
+	switch {
+	case req.PagePerNums > 100:
+		req.PagePerNums = 100
+	case req.PagePerNums <= 100:
+		req.PagePerNums = 10
+	}
+
+	result, err := global.ElasticClient.Search().Index(model.EsGoods{}.GetIndexName()).
+		Query(q).
+		From(int(req.Pages)).Size(int(req.PagePerNums)).
+		Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	goodsListResponse.Total = int32(result.Hits.TotalHits.Value)
+
+	// 提取es查询结果中goods id
+	goodsIds := make([]int32, 0)
+	for _, value := range result.Hits.Hits {
+		goods := model.EsGoods{}
+		_ = json.Unmarshal(value.Source, &goods)
+		goodsIds = append(goodsIds, goods.ID)
+	}
+
+	// 查询ID在某个数组中值
+	var goods []model.Goods
+	re := global.DB.Preload("Category").Preload("Brand").Find(&goods, goodsIds)
+	if re.Error != nil {
+		return nil, re.Error
+	}
+
+	for _, good := range goods {
+		goodsInfoResponse := ModelToResponse(good)
+		goodsListResponse.Data = append(goodsListResponse.Data, &goodsInfoResponse)
+	}
+
+	return goodsListResponse, nil
+}
+
+func (s *GoodsServer) GoodsListByDB(ctx context.Context, req *proto.GoodsFilterRequest) (*proto.GoodsListResponse, error) {
 
 	//	搜索条件：关键词搜索、查询新品、查询热门商品、通过价格区间筛选、通过商品分类筛选
 	goodsListResponse := &proto.GoodsListResponse{}
