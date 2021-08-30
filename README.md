@@ -1,4 +1,4 @@
-# 
+# 商城微服务  
 
 ## Table of Contents  
 
@@ -67,3 +67,8 @@ chmod 777 -R ik
 docker restart some-elasticsearch
 ```
 
+  RocketMQ  
+```shell
+# 将deployment/rocketmq目录上传服务器
+docker-compose up
+```

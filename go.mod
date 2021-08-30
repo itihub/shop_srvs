@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/anaskhan96/go-password-encoder v0.0.0-20201010210601-c765b799fd72
+	github.com/apache/rocketmq-client-go/v2 v2.1.0
 	github.com/go-redis/redis/v8 v8.11.3
 	github.com/go-redsync/redsync/v4 v4.3.0
 	github.com/golang/protobuf v1.5.2
