@@ -171,3 +171,141 @@ func (s *InventoryServer) Reback(ctx context.Context, req *proto.SellInfo) (*emp
 	tx.Commit() // 手动提交
 	return &emptypb.Empty{}, nil
 }
+
+/*
+	TCC
+*/
+
+// tcc 预减库存
+func (s *InventoryServer) TrySell(ctx context.Context, req *proto.SellInfo) (*emptypb.Empty, error) {
+
+	tx := global.DB.Begin() // 手动开启事物
+
+	rs := redsync.New(global.RedisPool)
+
+	// 扣减库存
+	for _, goodInfo := range req.GoodsInfo {
+		// 扣减条件判断
+		var inv model.InventoryTcc
+
+		// 获取分布式锁
+		mutex := rs.NewMutex(fmt.Sprintf("goods_%d", goodInfo.GoodsId))
+		if err := mutex.Lock(); err != nil {
+			return nil, status.Errorf(codes.Internal, "获取redis分布式锁异常")
+		}
+
+		if result := tx.Where(&model.Inventory{Goods: goodInfo.GoodsId}).First(&inv); result.RowsAffected == 0 {
+			tx.Rollback() // 回滚之前的操作
+			return nil, status.Errorf(codes.InvalidArgument, "库存信息不存在")
+		}
+		if inv.Stocks < goodInfo.Num {
+			tx.Rollback() // 回滚之前的操作
+			return nil, status.Errorf(codes.ResourceExhausted, "库存不足")
+		}
+
+		// 冻结库存
+		inv.Freeze += goodInfo.Num
+
+		tx.Save(&inv)
+		if ok, err := mutex.Unlock(); !ok || err != nil {
+			return nil, status.Errorf(codes.Internal, "释放redis分布式锁异常")
+		}
+	}
+
+	tx.Commit() // 手动提交
+	return &emptypb.Empty{}, nil
+}
+
+// tcc 确认库存
+func (s *InventoryServer) ConfirmSell(ctx context.Context, req *proto.SellInfo) (*emptypb.Empty, error) {
+
+	tx := global.DB.Begin() // 手动开启事物
+
+	rs := redsync.New(global.RedisPool)
+
+	// 扣减库存
+	for _, goodInfo := range req.GoodsInfo {
+		// 扣减条件判断
+		var inv model.InventoryTcc
+
+		// 获取分布式锁
+		mutex := rs.NewMutex(fmt.Sprintf("goods_%d", goodInfo.GoodsId))
+		if err := mutex.Lock(); err != nil {
+			return nil, status.Errorf(codes.Internal, "获取redis分布式锁异常")
+		}
+
+		if result := tx.Where(&model.Inventory{Goods: goodInfo.GoodsId}).First(&inv); result.RowsAffected == 0 {
+			tx.Rollback() // 回滚之前的操作
+			return nil, status.Errorf(codes.InvalidArgument, "库存信息不存在")
+		}
+		if inv.Stocks < goodInfo.Num {
+			tx.Rollback() // 回滚之前的操作
+			return nil, status.Errorf(codes.ResourceExhausted, "库存不足")
+		}
+
+		// 冻结库存释放
+		inv.Freeze -= goodInfo.Num
+		// 真正扣减库存
+		inv.Stocks -= goodInfo.Num
+
+		tx.Save(&inv)
+		if ok, err := mutex.Unlock(); !ok || err != nil {
+			return nil, status.Errorf(codes.Internal, "释放redis分布式锁异常")
+		}
+	}
+
+	tx.Commit() // 手动提交
+	return &emptypb.Empty{}, nil
+}
+
+// tcc 回滚库存
+func (s *InventoryServer) CancelSell(ctx context.Context, req *proto.SellInfo) (*emptypb.Empty, error) {
+
+	tx := global.DB.Begin() // 手动开启事物
+
+	rs := redsync.New(global.RedisPool)
+
+	// 扣减库存
+	for _, goodInfo := range req.GoodsInfo {
+		// 扣减条件判断
+		var inv model.InventoryTcc
+
+		// 获取分布式锁
+		mutex := rs.NewMutex(fmt.Sprintf("goods_%d", goodInfo.GoodsId))
+		if err := mutex.Lock(); err != nil {
+			return nil, status.Errorf(codes.Internal, "获取redis分布式锁异常")
+		}
+
+		if result := tx.Where(&model.Inventory{Goods: goodInfo.GoodsId}).First(&inv); result.RowsAffected == 0 {
+			tx.Rollback() // 回滚之前的操作
+			return nil, status.Errorf(codes.InvalidArgument, "库存信息不存在")
+		}
+		if inv.Stocks < goodInfo.Num {
+			tx.Rollback() // 回滚之前的操作
+			return nil, status.Errorf(codes.ResourceExhausted, "库存不足")
+		}
+
+		// 冻结库存释放
+		inv.Freeze -= goodInfo.Num
+
+		tx.Save(&inv)
+		if ok, err := mutex.Unlock(); !ok || err != nil {
+			return nil, status.Errorf(codes.Internal, "释放redis分布式锁异常")
+		}
+	}
+
+	tx.Commit() // 手动提交
+	return &emptypb.Empty{}, nil
+}
+
+func (s *InventoryServer) InvDetailTcc(ctx context.Context, req *proto.GoodsInvInfo) (*proto.GoodsInvInfo, error) {
+	var inv model.InventoryTcc
+	if result := global.DB.Where(&model.Inventory{Goods: req.GoodsId}).First(&inv); result.RowsAffected == 0 {
+		return nil, status.Errorf(codes.NotFound, "库存信息不存在")
+	}
+
+	return &proto.GoodsInvInfo{
+		GoodsId: inv.Goods,
+		Num:     inv.Stocks - inv.Freeze,
+	}, nil
+}

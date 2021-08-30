@@ -22,3 +22,11 @@ type InventoryHistory struct {
 	order  int32 `gorm:"not null;index;type:int comment '订单号'"`
 	status int32 `gorm:"not null;type:int comment '状态'"` // 1. 表示库存是预减，幂等性 2. 表示已支付
 }
+
+// tcc
+type InventoryTcc struct {
+	BaseModel
+	Goods  int32 `gorm:"not null;index;type:int comment '商品ID'"`
+	Stocks int32 `gorm:"not null;type:int comment '库存'"`
+	Freeze int32 `gorm:"not null;type:int comment '冻结库存'"`
+}
