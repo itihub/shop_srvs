@@ -22,14 +22,22 @@ type RedisConfig struct {
 	Port int    `mapstructure:"port" json:"port"`
 }
 
+type RocketMQConfig struct {
+	Host              string `mapstructure:"host" json:"host"`
+	Port              int    `mapstructure:"port" json:"port"`
+	OrderRebackTopic  string `mapstructure:"order_reback_topic" json:"order_reback_topic"`
+	OrderTimeoutTopic string `mapstructure:"order_timeout_topic" json:"order_timeout_topic"`
+}
+
 type ServerConfig struct {
-	Host       string       `mapstructure:"host" json:"host"`
-	Port       int          `mapstructure:"port" json:"port"`
-	Name       string       `mapstructure:"name" json:"name"`
-	Tags       []string     `mapstructure:"tags" json:"tags"`
-	MysqlInfo  MysqlConfig  `mapstructure:"mysql" json:"mysql"`
-	ConsulInfo ConsulConfig `mapstructure:"consul" json:"consul"`
-	RedisInfo  RedisConfig  `mapstructure:"redis" json:"redis"`
+	Host         string         `mapstructure:"host" json:"host"`
+	Port         int            `mapstructure:"port" json:"port"`
+	Name         string         `mapstructure:"name" json:"name"`
+	Tags         []string       `mapstructure:"tags" json:"tags"`
+	MysqlInfo    MysqlConfig    `mapstructure:"mysql" json:"mysql"`
+	ConsulInfo   ConsulConfig   `mapstructure:"consul" json:"consul"`
+	RedisInfo    RedisConfig    `mapstructure:"redis" json:"redis"`
+	RocketMQInfo RocketMQConfig `mapstructure:"rocket-mq" json:"rocket-mq"`
 	// 商品微服务的配置
 	GoodsSrvInfo SrvConfig `mapstructure:"goods_srv" json:"goods_srv"`
 	// 库存微服务的配置

@@ -14,6 +14,9 @@ import (
 	"shop_srvs/order_srv/utils/register/consul"
 	"syscall"
 
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/apache/rocketmq-client-go/v2/consumer"
+
 	uuid "github.com/satori/go.uuid"
 
 	"google.golang.org/grpc/health"
@@ -66,6 +69,13 @@ func main() {
 	// grpc 注册服务健康检查
 	grpc_health_v1.RegisterHealthServer(server, health.NewServer())
 
+	go func() {
+		err = server.Serve(lis)
+		if err != nil {
+			panic("failed to start grpc:" + err.Error())
+		}
+	}()
+
 	// 服务注册
 	serviceID := fmt.Sprintf("%s", uuid.NewV4())
 	registryClient := consul.NewRegistryClient(global.ServerConfig.ConsulInfo.Host, global.ServerConfig.ConsulInfo.Port)
@@ -75,17 +85,23 @@ func main() {
 	}
 	zap.S().Debugf("启动服务, 端口:%d", global.ServerConfig.Port)
 
-	go func() {
-		err = server.Serve(lis)
-		if err != nil {
-			panic("failed to start grpc:" + err.Error())
-		}
-	}()
+	// 监听订单超时topic
+	c, _ := rocketmq.NewPushConsumer(
+		consumer.WithNameServer([]string{fmt.Sprintf("%s:%d", global.ServerConfig.RocketMQInfo.Host, global.ServerConfig.RocketMQInfo.Port)}),
+		consumer.WithGroupName("shop-order"), // 设置group 作用：集群部署时，可以起到负载均衡的作用，一个消息只会被消费一次
+	)
+
+	if err := c.Subscribe(global.ServerConfig.RocketMQInfo.OrderTimeoutTopic, consumer.MessageSelector{}, handler.OrderTimeout); err != nil {
+		fmt.Println("读取消息失败")
+	}
+
+	_ = c.Start()
 
 	// 接受终止信号 优雅退出
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
+	_ = c.Shutdown()
 	if err = registryClient.DeRegister(serviceID); err != nil {
 		zap.S().Info("注销失败")
 	}

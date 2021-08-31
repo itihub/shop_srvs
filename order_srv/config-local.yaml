@@ -31,3 +31,12 @@ goods_srv:
   name: 'goods-srv'
 inventory_srv:
   name: 'inventory-srv'
+
+##########################
+###    RocketMQ 配置    ###
+##########################
+rocket-mq:
+  host: '192.168.56.110'
+  port: 9876
+  order_reback_topic: 'order_reback'
+  order_timeout_topic: 'order_timeout'

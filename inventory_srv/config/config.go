@@ -18,14 +18,21 @@ type RedisConfig struct {
 	Port int    `mapstructure:"port" json:"port"`
 }
 
-type ServiceConfig struct {
-	Host       string       `mapstructure:"host" json:"host"`
-	Port       int          `mapstructure:"port" json:"port"`
-	Name       string       `mapstructure:"name" json:"name"`
-	Tags       []string     `mapstructure:"tags" json:"tags"`
-	MysqlInfo  MysqlConfig  `mapstructure:"mysql" json:"mysql"`
-	ConsulInfo ConsulConfig `mapstructure:"consul" json:"consul"`
-	RedisInfo  RedisConfig  `mapstructure:"redis" json:"redis"`
+type RocketMQConfig struct {
+	Host             string `mapstructure:"host" json:"host"`
+	Port             int    `mapstructure:"port" json:"port"`
+	OrderRebackTopic string `mapstructure:"order_reback_topic" json:"order_reback_topic"`
+}
+
+type ServerConfig struct {
+	Host         string         `mapstructure:"host" json:"host"`
+	Port         int            `mapstructure:"port" json:"port"`
+	Name         string         `mapstructure:"name" json:"name"`
+	Tags         []string       `mapstructure:"tags" json:"tags"`
+	MysqlInfo    MysqlConfig    `mapstructure:"mysql" json:"mysql"`
+	ConsulInfo   ConsulConfig   `mapstructure:"consul" json:"consul"`
+	RedisInfo    RedisConfig    `mapstructure:"redis" json:"redis"`
+	RocketMQInfo RocketMQConfig `mapstructure:"rocket-mq" json:"rocket-mq"`
 }
 
 type NacosConfig struct {

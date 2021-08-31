@@ -10,8 +10,8 @@ import (
 
 // 全局变量
 var (
-	DB            *gorm.DB
-	ServiceConfig config.ServiceConfig
-	NacosConfig   config.NacosConfig
-	RedisPool     redis.Pool
+	DB           *gorm.DB
+	ServerConfig config.ServerConfig
+	NacosConfig  config.NacosConfig
+	RedisPool    redis.Pool
 )

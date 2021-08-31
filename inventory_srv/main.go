@@ -14,6 +14,8 @@ import (
 	"shop_srvs/inventory_srv/utils/register/consul"
 	"syscall"
 
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/apache/rocketmq-client-go/v2/consumer"
 	uuid "github.com/satori/go.uuid"
 
 	"google.golang.org/grpc/health"
@@ -45,10 +47,10 @@ func main() {
 
 	// 如果命令行没有传递port使用动态端口号，如果传递则使用命令行传递端口号
 	if *Port == 0 {
-		if global.ServiceConfig.Port == 0 {
+		if global.ServerConfig.Port == 0 {
 			*Port, _ = utils.GetFreePort()
 		}
-		*Port = global.ServiceConfig.Port
+		*Port = global.ServerConfig.Port
 	}
 
 	zap.S().Info("ip: ", *IP)
@@ -65,15 +67,6 @@ func main() {
 	// grpc 注册服务健康检查
 	grpc_health_v1.RegisterHealthServer(server, health.NewServer())
 
-	// 服务注册
-	serviceID := fmt.Sprintf("%s", uuid.NewV4())
-	registryClient := consul.NewRegistryClient(global.ServiceConfig.ConsulInfo.Host, global.ServiceConfig.ConsulInfo.Port)
-	err = registryClient.Register(global.ServiceConfig.Host, global.ServiceConfig.Port, global.ServiceConfig.Name, global.ServiceConfig.Tags, serviceID)
-	if err != nil {
-		zap.S().Panic("服务注册失败:", err.Error())
-	}
-	zap.S().Debugf("启动服务, 端口:%d", global.ServiceConfig.Port)
-
 	go func() {
 		err = server.Serve(lis)
 		if err != nil {
@@ -81,10 +74,32 @@ func main() {
 		}
 	}()
 
+	// 服务注册
+	serviceID := fmt.Sprintf("%s", uuid.NewV4())
+	registryClient := consul.NewRegistryClient(global.ServerConfig.ConsulInfo.Host, global.ServerConfig.ConsulInfo.Port)
+	err = registryClient.Register(global.ServerConfig.Host, global.ServerConfig.Port, global.ServerConfig.Name, global.ServerConfig.Tags, serviceID)
+	if err != nil {
+		zap.S().Panic("服务注册失败:", err.Error())
+	}
+	zap.S().Debugf("启动服务, 端口:%d", global.ServerConfig.Port)
+
+	// 监听库存归还topic
+	c, _ := rocketmq.NewPushConsumer(
+		consumer.WithNameServer([]string{fmt.Sprintf("%s:%d", global.ServerConfig.RocketMQInfo.Host, global.ServerConfig.RocketMQInfo.Port)}),
+		consumer.WithGroupName("shop-inventory"), // 设置group 作用：集群部署时，可以起到负载均衡的作用，一个消息只会被消费一次
+	)
+
+	if err := c.Subscribe(global.ServerConfig.RocketMQInfo.OrderRebackTopic, consumer.MessageSelector{}, handler.AutoReback); err != nil {
+		fmt.Println("读取消息失败")
+	}
+
+	_ = c.Start()
+
 	// 接受终止信号 优雅退出
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
+	_ = c.Shutdown()
 	if err = registryClient.DeRegister(serviceID); err != nil {
 		zap.S().Info("注销失败")
 	}

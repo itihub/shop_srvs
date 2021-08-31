@@ -2,11 +2,18 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"shop_srvs/inventory_srv/global"
 	"shop_srvs/inventory_srv/model"
 	"shop_srvs/inventory_srv/proto"
 	"sync"
+
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+
+	"github.com/apache/rocketmq-client-go/v2/consumer"
+	"github.com/apache/rocketmq-client-go/v2/primitive"
 
 	"github.com/go-redsync/redsync/v4"
 
@@ -59,8 +66,19 @@ func (s *InventoryServer) Sell(ctx context.Context, req *proto.SellInfo) (*empty
 
 	rs := redsync.New(global.RedisPool)
 
+	sellDetail := model.StockSellDetail{
+		OrderSn: req.OrderSn,
+		Status:  1,
+	}
 	// 扣减库存
+	var details []model.GoodsDetail
 	for _, goodInfo := range req.GoodsInfo {
+
+		details = append(details, model.GoodsDetail{
+			Goods: goodInfo.GoodsId,
+			Num:   goodInfo.Num,
+		})
+
 		// 扣减条件判断
 		var inv model.Inventory
 
@@ -87,8 +105,53 @@ func (s *InventoryServer) Sell(ctx context.Context, req *proto.SellInfo) (*empty
 		}
 	}
 
+	sellDetail.Detail = details
+	if result := tx.Create(&sellDetail); result.RowsAffected == 0 {
+		tx.Rollback()
+		return nil, status.Errorf(codes.Internal, "保存库存扣减历史失败")
+	}
+
 	tx.Commit() // 手动提交
 	return &emptypb.Empty{}, nil
+}
+
+// 归还库存
+func AutoReback(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
+	type OrderInfo struct {
+		OrderSn string `json:"order_sn"`
+	}
+	for i := range msgs {
+		var orderInfo OrderInfo
+		err := json.Unmarshal(msgs[i].Body, &orderInfo)
+		if err != nil {
+			zap.S().Errorf("解析json失败: %v\n", msgs[i].Body)
+			return consumer.ConsumeSuccess, nil
+		}
+
+		// 去将inv库存加回去，将sellDetail的status设置为2
+		tx := global.DB.Begin()
+		var sellDetail model.StockSellDetail
+		if result := tx.Model(&model.StockSellDetail{}).Where(&model.StockSellDetail{OrderSn: orderInfo.OrderSn, Status: 1}).First(&sellDetail); result.RowsAffected == 0 {
+			return consumer.ConsumeSuccess, nil
+		}
+
+		// 如果查询到那么逐个归还库存
+		for _, orderGood := range sellDetail.Detail {
+			if result := tx.Model(&model.Inventory{}).Where(&model.Inventory{Goods: orderGood.Goods}).Update("stocks", gorm.Expr("stocks + ?", orderGood.Num)); result.RowsAffected == 0 {
+				tx.Rollback()
+				return consumer.ConsumeRetryLater, nil
+			}
+		}
+
+		if result := tx.Model(&model.StockSellDetail{}).Where(&model.StockSellDetail{OrderSn: orderInfo.OrderSn}).Update("status", 2); result.RowsAffected == 0 {
+			tx.Rollback()
+			return consumer.ConsumeRetryLater, nil
+		}
+		tx.Commit()
+		return consumer.ConsumeSuccess, nil
+	}
+
+	return consumer.ConsumeSuccess, nil
 }
 
 var m sync.Mutex // 操作系统提供的锁 缺点：在集群部署下竞争同一个数据库时这在单机起作用

@@ -40,6 +40,6 @@ func main() {
 	}
 
 	// 迁移 schema
-	db.AutoMigrate(&model.Inventory{})
+	db.AutoMigrate(&model.Inventory{}, &model.StockSellDetail{})
 
 }
