@@ -24,6 +24,11 @@ type RocketMQConfig struct {
 	OrderRebackTopic string `mapstructure:"order_reback_topic" json:"order_reback_topic"`
 }
 
+type JaegerConfig struct {
+	Host string `mapstructure:"host" json:"host"`
+	Port int    `mapstructure:"port" json:"port"`
+}
+
 type ServerConfig struct {
 	Host         string         `mapstructure:"host" json:"host"`
 	Port         int            `mapstructure:"port" json:"port"`
@@ -33,6 +38,7 @@ type ServerConfig struct {
 	ConsulInfo   ConsulConfig   `mapstructure:"consul" json:"consul"`
 	RedisInfo    RedisConfig    `mapstructure:"redis" json:"redis"`
 	RocketMQInfo RocketMQConfig `mapstructure:"rocket-mq" json:"rocket-mq"`
+	JaegerInfo   JaegerConfig   `mapstructure:"jaeger" json:"jaeger"`
 }
 
 type NacosConfig struct {

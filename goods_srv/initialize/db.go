@@ -31,7 +31,7 @@ func InitDB() {
 	// 参考 https://github.com/go-sql-driver/mysql#dsn-data-source-name 获取详情
 	//dsn := "root:123456@tcp(local.docker.node1.com:3306)/micro_goods_srv?charset=utf8mb4&parseTime=True&loc=Local"
 
-	mysqlInfo := global.ServiceConfig.MysqlInfo
+	mysqlInfo := global.ServerConfig.MysqlInfo
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		mysqlInfo.User, mysqlInfo.Password, mysqlInfo.Host, mysqlInfo.Port, mysqlInfo.Name)
 	var err error

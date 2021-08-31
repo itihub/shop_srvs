@@ -40,3 +40,10 @@ rocket-mq:
   port: 9876
   order_reback_topic: 'order_reback'
   order_timeout_topic: 'order_timeout'
+
+##########################
+### 链路追踪 jaeger 配置 ###
+##########################
+jaeger:
+  host: '192.168.56.110'
+  port: 6831

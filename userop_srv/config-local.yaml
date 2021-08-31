@@ -23,3 +23,10 @@ mysql:
 consul:
   host: 'local.docker.node1.com'
   port: 8500
+
+##########################
+### 链路追踪 jaeger 配置 ###
+##########################
+jaeger:
+  host: '192.168.56.110'
+  port: 6831

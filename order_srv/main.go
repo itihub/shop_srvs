@@ -11,6 +11,7 @@ import (
 	"shop_srvs/order_srv/initialize"
 	"shop_srvs/order_srv/proto"
 	"shop_srvs/order_srv/utils"
+	"shop_srvs/order_srv/utils/otgrpc"
 	"shop_srvs/order_srv/utils/register/consul"
 	"syscall"
 
@@ -46,6 +47,7 @@ func main() {
 	initialize.InitDB()
 	initialize.InitRedis()
 	initialize.InitSrvConn()
+	tracer, closer := initialize.InitTrace()
 
 	// 如果命令行没有传递port使用动态端口号，如果传递则使用命令行传递端口号
 	if *Port == 0 {
@@ -59,7 +61,7 @@ func main() {
 	zap.S().Info("port: ", *Port)
 
 	// GRPC 启动
-	server := grpc.NewServer()
+	server := grpc.NewServer(grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(tracer)))
 	proto.RegisterOrderServer(server, &handler.OrderService{})
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *IP, *Port))
 	if err != nil {
@@ -102,6 +104,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	_ = c.Shutdown()
+	_ = closer.Close()
 	if err = registryClient.DeRegister(serviceID); err != nil {
 		zap.S().Info("注销失败")
 	}

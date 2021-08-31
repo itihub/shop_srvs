@@ -13,13 +13,19 @@ type ConsulConfig struct {
 	Port int    `mapstructure:"port" json:"port"`
 }
 
-type ServiceConfig struct {
+type JaegerConfig struct {
+	Host string `mapstructure:"host" json:"host"`
+	Port int    `mapstructure:"port" json:"port"`
+}
+
+type ServerConfig struct {
 	Host       string       `mapstructure:"host" json:"host"`
 	Port       int          `mapstructure:"port" json:"port"`
 	Name       string       `mapstructure:"name" json:"name"`
 	Tags       []string     `mapstructure:"tags" json:"tags"`
 	MysqlInfo  MysqlConfig  `mapstructure:"mysql" json:"mysql"`
 	ConsulInfo ConsulConfig `mapstructure:"consul" json:"consul"`
+	JaegerInfo JaegerConfig `mapstructure:"jaeger" json:"jaeger"`
 }
 
 type NacosConfig struct {

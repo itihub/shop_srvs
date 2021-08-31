@@ -10,7 +10,7 @@ import (
 // 全局变量
 var (
 	DB            *gorm.DB
-	ServiceConfig config.ServiceConfig
+	ServerConfig  config.ServerConfig
 	NacosConfig   config.NacosConfig
 	ElasticClient *elastic.Client
 )

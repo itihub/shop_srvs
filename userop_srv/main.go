@@ -11,6 +11,7 @@ import (
 	"shop_srvs/userop_srv/initialize"
 	"shop_srvs/userop_srv/proto"
 	"shop_srvs/userop_srv/utils"
+	"shop_srvs/userop_srv/utils/otgrpc"
 	"shop_srvs/userop_srv/utils/register/consul"
 	"syscall"
 
@@ -42,20 +43,21 @@ func main() {
 	initialize.InitConfig()
 	initialize.InitDB()
 	initialize.InitRedis()
+	tracer, closer := initialize.InitTrace()
 
 	// 如果命令行没有传递port使用动态端口号，如果传递则使用命令行传递端口号
 	if *Port == 0 {
-		if global.ServiceConfig.Port == 0 {
+		if global.ServerConfig.Port == 0 {
 			*Port, _ = utils.GetFreePort()
 		}
-		*Port = global.ServiceConfig.Port
+		*Port = global.ServerConfig.Port
 	}
 
 	zap.S().Info("ip: ", *IP)
 	zap.S().Info("port: ", *Port)
 
 	// GRPC 启动
-	server := grpc.NewServer()
+	server := grpc.NewServer(grpc.UnaryInterceptor(otgrpc.OpenTracingServerInterceptor(tracer)))
 	proto.RegisterUserFavServer(server, &handler.UserOpServer{})
 	proto.RegisterAddressServer(server, &handler.UserOpServer{})
 	proto.RegisterMessageServer(server, &handler.UserOpServer{})
@@ -69,12 +71,12 @@ func main() {
 
 	// 服务注册
 	serviceID := fmt.Sprintf("%s", uuid.NewV4())
-	registryClient := consul.NewRegistryClient(global.ServiceConfig.ConsulInfo.Host, global.ServiceConfig.ConsulInfo.Port)
-	err = registryClient.Register(global.ServiceConfig.Host, global.ServiceConfig.Port, global.ServiceConfig.Name, global.ServiceConfig.Tags, serviceID)
+	registryClient := consul.NewRegistryClient(global.ServerConfig.ConsulInfo.Host, global.ServerConfig.ConsulInfo.Port)
+	err = registryClient.Register(global.ServerConfig.Host, global.ServerConfig.Port, global.ServerConfig.Name, global.ServerConfig.Tags, serviceID)
 	if err != nil {
 		zap.S().Panic("服务注册失败:", err.Error())
 	}
-	zap.S().Debugf("启动服务, 端口:%d", global.ServiceConfig.Port)
+	zap.S().Debugf("启动服务, 端口:%d", global.ServerConfig.Port)
 
 	go func() {
 		err = server.Serve(lis)
@@ -87,6 +89,7 @@ func main() {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
+	_ = closer.Close()
 	if err = registryClient.DeRegister(serviceID); err != nil {
 		zap.S().Info("注销失败")
 	}

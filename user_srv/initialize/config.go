@@ -91,7 +91,7 @@ func InitConfig() {
 	}
 
 	// 想要将字符串转成json,需要去设置这个struct的tag
-	err = json.Unmarshal([]byte(content), &global.ServiceConfig) // json 转换成 struct
+	err = json.Unmarshal([]byte(content), &global.ServerConfig) // json 转换成 struct
 	if err != nil {
 		zap.S().Fatalf("读取nacos配置文件失败：%s", err.Error())
 	}
@@ -113,7 +113,7 @@ func InitConfig2() {
 	if err := v.ReadInConfig(); err != nil {
 		panic(err)
 	}
-	if err := v.Unmarshal(&global.ServiceConfig); err != nil {
+	if err := v.Unmarshal(&global.ServerConfig); err != nil {
 		panic(err)
 	}
 }

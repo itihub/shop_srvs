@@ -72,3 +72,12 @@ docker restart some-elasticsearch
 # 将deployment/rocketmq目录上传服务器
 docker-compose up
 ```
+
+  Jaeger 链路追踪  
+```shell
+# GitHUb https://github.com/jaegertracing/jaeger
+docker run --rm --name some-jaeger \
+    -p 6831:6831/udp -p 16686:16686 \
+    -d jaegertracing/all-in-one:latest
+    
+```

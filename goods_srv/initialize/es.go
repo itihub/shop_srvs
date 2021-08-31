@@ -13,7 +13,7 @@ import (
 
 func InitElastic() {
 	// 初始化es连接
-	host := fmt.Sprintf("http://%s:%d", global.ServiceConfig.ElasticInfo.Host, global.ServiceConfig.ElasticInfo.Port)
+	host := fmt.Sprintf("http://%s:%d", global.ServerConfig.ElasticInfo.Host, global.ServerConfig.ElasticInfo.Port)
 	logger := log.New(os.Stdout, "shop", log.LstdFlags)
 	var err error
 	global.ElasticClient, err = elastic.NewClient(elastic.SetURL(host), elastic.SetSniff(false), elastic.SetTraceLog(logger))

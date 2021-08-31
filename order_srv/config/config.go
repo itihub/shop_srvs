@@ -29,6 +29,11 @@ type RocketMQConfig struct {
 	OrderTimeoutTopic string `mapstructure:"order_timeout_topic" json:"order_timeout_topic"`
 }
 
+type JaegerConfig struct {
+	Host string `mapstructure:"host" json:"host"`
+	Port int    `mapstructure:"port" json:"port"`
+}
+
 type ServerConfig struct {
 	Host         string         `mapstructure:"host" json:"host"`
 	Port         int            `mapstructure:"port" json:"port"`
@@ -41,7 +46,8 @@ type ServerConfig struct {
 	// 商品微服务的配置
 	GoodsSrvInfo SrvConfig `mapstructure:"goods_srv" json:"goods_srv"`
 	// 库存微服务的配置
-	InventorySrvInfo SrvConfig `mapstructure:"inventory_srv" json:"inventory_srv"`
+	InventorySrvInfo SrvConfig    `mapstructure:"inventory_srv" json:"inventory_srv"`
+	JaegerInfo       JaegerConfig `mapstructure:"jaeger" json:"jaeger"`
 }
 
 type NacosConfig struct {
